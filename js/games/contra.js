@@ -7,6 +7,7 @@ class ContraGame extends BaseGame {
   constructor() {
     super();
     this.groundY = 200;
+    this.levelWidth = 1600;
     this.reset();
   }
 
@@ -19,6 +20,7 @@ class ContraGame extends BaseGame {
     this.bullets = [];
     this.eBullets = [];
     this.enemies = [];
+    this.camX = 0;
     this.score = 0;
     this.lives = 3;
     this.killed = 0;
@@ -43,7 +45,8 @@ class ContraGame extends BaseGame {
       p.vy = 0;
       p.onGround = true;
     }
-    p.x = Utils.clamp(p.x, 0, NES.WIDTH - p.w);
+    p.x = Utils.clamp(p.x, 0, this.levelWidth - p.w);
+    this.camX = Utils.clamp(p.x - 110, 0, this.levelWidth - NES.WIDTH);
 
     p.cd -= dt;
     if (input.isDown(BTN.A) && p.cd <= 0) {
@@ -60,7 +63,7 @@ class ContraGame extends BaseGame {
       this.spawnTimer = Utils.rand(1.0, 1.8);
       const fromLeft = Math.random() < 0.5;
       this.enemies.push({
-        x: fromLeft ? -14 : NES.WIDTH + 2,
+        x: fromLeft ? this.camX - 14 : this.camX + NES.WIDTH + 2,
         y: this.groundY - 16,
         w: 12, h: 16,
         vx: fromLeft ? 32 : -32,
@@ -69,15 +72,17 @@ class ContraGame extends BaseGame {
       });
     }
 
+    const viewL = this.camX;
+    const viewR = this.camX + NES.WIDTH;
     this.bullets.forEach((b) => { b.x += b.vx * dt; });
-    this.bullets = this.bullets.filter((b) => b.x > -4 && b.x < NES.WIDTH + 4);
+    this.bullets = this.bullets.filter((b) => b.x > viewL - 8 && b.x < viewR + 8);
     this.eBullets.forEach((b) => { b.x += b.vx * dt; });
-    this.eBullets = this.eBullets.filter((b) => b.x > -4 && b.x < NES.WIDTH + 4);
+    this.eBullets = this.eBullets.filter((b) => b.x > viewL - 8 && b.x < viewR + 8);
 
     this.enemies.forEach((e) => {
       e.x += e.vx * dt;
       e.cd -= dt;
-      if (e.cd <= 0 && e.x > 0 && e.x < NES.WIDTH) {
+      if (e.cd <= 0 && e.x > viewL && e.x < viewR) {
         e.cd = Utils.rand(1.2, 2.6);
         this.eBullets.push({ x: e.x + e.w / 2, y: e.y + 6, vx: e.facing * 150 });
       }
@@ -110,7 +115,7 @@ class ContraGame extends BaseGame {
         e.dead = true;
       }
     });
-    this.enemies = this.enemies.filter((e) => !e.dead && e.x > -20 && e.x < NES.WIDTH + 20);
+    this.enemies = this.enemies.filter((e) => !e.dead && e.x > viewL - 40 && e.x < viewR + 40);
 
     if (this.killed >= this.toWin) { this.done = true; this.win = true; }
   }
@@ -120,7 +125,6 @@ class ContraGame extends BaseGame {
     if (this.lives <= 0) { this.done = true; this.win = false; }
     else {
       const p = this.player;
-      p.x = 40;
       p.y = this.groundY - p.h;
       p.vy = 0;
     }
@@ -137,6 +141,16 @@ class ContraGame extends BaseGame {
     ctx.fillRect(0, this.groundY, NES.WIDTH, NES.HEIGHT - this.groundY);
     ctx.fillStyle = "#308030";
     ctx.fillRect(0, this.groundY, NES.WIDTH, 4);
+
+    ctx.save();
+    ctx.translate(-Math.round(this.camX), 0);
+
+    // 随镜头滚动的背景立柱，直观体现场景已解锁、可横向推进。
+    ctx.fillStyle = "#1a3050";
+    for (let x = 40; x < this.levelWidth; x += 160) {
+      ctx.fillRect(x, this.groundY - 46, 14, 46);
+      ctx.fillRect(x - 3, this.groundY - 50, 20, 6);
+    }
 
     const p = this.player;
     ctx.fillStyle = "#f0d0a0";
@@ -157,6 +171,8 @@ class ContraGame extends BaseGame {
     this.bullets.forEach((b) => ctx.fillRect(b.x, b.y, 4, 2));
     ctx.fillStyle = "#ff6060";
     this.eBullets.forEach((b) => ctx.fillRect(b.x, b.y, 4, 2));
+
+    ctx.restore();
 
     this.drawHud(ctx, {
       score: this.score,
