@@ -50,7 +50,7 @@ class MarioGame extends BaseGame {
     p.vx = 0;
     if (input.isDown(BTN.LEFT)) { p.vx = -80; p.facing = -1; }
     if (input.isDown(BTN.RIGHT)) { p.vx = 80; p.facing = 1; }
-    if (input.pressed(BTN.A) && p.onGround) { p.vy = -185; p.onGround = false; }
+    if (input.pressed(BTN.A) && p.onGround) { p.vy = -280; p.onGround = false; }
 
     p.vy = Math.min(p.vy + 480 * dt, 260);
 
