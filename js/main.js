@@ -1,18 +1,23 @@
-// 入口：装配 MVC 各部分。
+// 入口：装配输入、绑定屏幕手柄、启动控制台主循环。
 window.addEventListener("DOMContentLoaded", () => {
-  const model = new GameModel(GameConfig);
+  const canvas = document.getElementById("screen");
+  const input = new InputManager();
 
-  const view = new GameView(GameConfig, {
-    canvas: document.getElementById("board"),
-    score: document.getElementById("score"),
-    best: document.getElementById("best"),
-    overlay: document.getElementById("overlay"),
-    overlayText: document.getElementById("overlay-text"),
+  const buttonMap = {
+    "btn-up": BTN.UP,
+    "btn-down": BTN.DOWN,
+    "btn-left": BTN.LEFT,
+    "btn-right": BTN.RIGHT,
+    "btn-a": BTN.A,
+    "btn-b": BTN.B,
+    "btn-start": BTN.START,
+    "btn-select": BTN.SELECT,
+  };
+  Object.entries(buttonMap).forEach(([id, btn]) => {
+    const el = document.getElementById(id);
+    if (el) input.bindButton(el, btn);
   });
 
-  // eslint-disable-next-line no-new
-  new GameController(model, view, {
-    start: document.getElementById("start-btn"),
-    pause: document.getElementById("pause-btn"),
-  });
+  const fc = new GameConsole(canvas, input);
+  fc.start();
 });

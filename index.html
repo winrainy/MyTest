@@ -3,44 +3,53 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>贪吃蛇 Snake</title>
+  <title>FC 红白机游戏机</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <main class="app">
-    <h1 class="title">贪吃蛇 🐍</h1>
+  <div class="console">
+    <div class="console-top">
+      <span class="brand">FAMILY&nbsp;COMPUTER</span>
+      <span class="led"></span>
+    </div>
 
-    <div class="scoreboard">
-      <div class="score-item">
-        <span class="score-label">得分</span>
-        <span id="score" class="score-value">0</span>
+    <div class="screen-bezel">
+      <canvas id="screen" width="256" height="240"></canvas>
+    </div>
+
+    <div class="gamepad">
+      <div class="dpad">
+        <button id="btn-up" class="dpad-btn dpad-up" aria-label="上">▲</button>
+        <button id="btn-left" class="dpad-btn dpad-left" aria-label="左">◀</button>
+        <span class="dpad-center"></span>
+        <button id="btn-right" class="dpad-btn dpad-right" aria-label="右">▶</button>
+        <button id="btn-down" class="dpad-btn dpad-down" aria-label="下">▼</button>
       </div>
-      <div class="score-item">
-        <span class="score-label">最高分</span>
-        <span id="best" class="score-value">0</span>
+
+      <div class="mid-btns">
+        <button id="btn-select" class="pill">SELECT</button>
+        <button id="btn-start" class="pill">START</button>
+      </div>
+
+      <div class="ab-btns">
+        <button id="btn-b" class="round-btn">B</button>
+        <button id="btn-a" class="round-btn">A</button>
       </div>
     </div>
 
-    <div class="board-wrap">
-      <canvas id="board" width="400" height="400"></canvas>
-      <div id="overlay" class="overlay hidden">
-        <p id="overlay-text" class="overlay-text"></p>
-        <p class="overlay-hint">按 空格 / 点击「开始」重新开始</p>
-      </div>
-    </div>
-
-    <div class="controls">
-      <button id="start-btn" class="btn btn-primary" type="button">开始游戏</button>
-      <button id="pause-btn" class="btn" type="button" disabled>暂停</button>
-    </div>
-
-    <p class="hint">使用 方向键 或 WASD 控制方向 · 空格 暂停/继续</p>
-  </main>
+    <p class="help">
+      键盘:方向键/WASD 移动 · J/Z = A · K/X = B · Enter = START · Shift = SELECT
+    </p>
+  </div>
 
   <script src="js/config.js"></script>
-  <script src="js/model.js"></script>
-  <script src="js/view.js"></script>
-  <script src="js/controller.js"></script>
+  <script src="js/engine/utils.js"></script>
+  <script src="js/engine/input.js"></script>
+  <script src="js/engine/game.js"></script>
+  <script src="js/games/mario.js"></script>
+  <script src="js/games/tank.js"></script>
+  <script src="js/games/contra.js"></script>
+  <script src="js/console.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
