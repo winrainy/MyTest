@@ -12,17 +12,22 @@ class TankGame extends BaseGame {
   reset() {
     super.reset();
     this.player = {
-      x: 120, y: 210, w: 16, h: 16,
+      x: 80, y: 210, w: 16, h: 16,
       dir: { x: 0, y: -1 }, speed: 62, cd: 0,
     };
     this.bullets = [];
     this.enemies = [];
+    // 我方营地（老巢）：被击毁即判负，底部居中并用砖墙围护成 U 形。
+    this.base = { x: 120, y: 216, w: 16, h: 16, alive: true };
     this.walls = [
       { x: 40, y: 90, w: 16, h: 48 },
       { x: 120, y: 60, w: 16, h: 48 },
       { x: 200, y: 90, w: 16, h: 48 },
       { x: 70, y: 150, w: 48, h: 14 },
       { x: 140, y: 150, w: 48, h: 14 },
+      { x: 112, y: 204, w: 32, h: 8 },
+      { x: 112, y: 212, w: 8, h: 24 },
+      { x: 136, y: 212, w: 8, h: 24 },
     ];
     this.score = 0;
     this.lives = 3;
@@ -103,6 +108,12 @@ class TankGame extends BaseGame {
     if (b.x < 0 || b.x > NES.WIDTH || b.y < 0 || b.y > NES.HEIGHT) return false;
     const box = { x: b.x - 1, y: b.y - 1, w: 3, h: 3 };
     for (const w of this.walls) if (Utils.aabb(box, w)) return false;
+    if (this.base.alive && Utils.aabb(box, this.base)) {
+      this.base.alive = false;
+      this.done = true;
+      this.win = false;
+      return false;
+    }
     if (b.from === "player") {
       for (const e of this.enemies) {
         if (!e.dead && Utils.aabb(box, e)) {
@@ -134,6 +145,7 @@ class TankGame extends BaseGame {
   _blocked(x, y, size, self) {
     const r = { x, y, w: size.w, h: size.h };
     for (const w of this.walls) if (Utils.aabb(r, w)) return true;
+    if (this.base.alive && Utils.aabb(r, this.base)) return true;
     const others = [this.player, ...this.enemies].filter((o) => o !== self && !o.dead);
     for (const o of others) if (Utils.aabb(r, o)) return true;
     return false;
@@ -142,7 +154,7 @@ class TankGame extends BaseGame {
   _hurt() {
     this.lives -= 1;
     if (this.lives <= 0) { this.done = true; this.win = false; }
-    else { this.player.x = 120; this.player.y = 210; }
+    else { this.player.x = 80; this.player.y = 210; }
   }
 
   render(ctx) {
@@ -160,6 +172,8 @@ class TankGame extends BaseGame {
       }
     });
 
+    this._base(ctx);
+
     this._tank(ctx, this.player, "#f8d038", "#a86800");
     this.enemies.forEach((e) => this._tank(ctx, e, "#9aa0a8", "#4a4f57"));
 
@@ -171,6 +185,25 @@ class TankGame extends BaseGame {
       lives: this.lives,
       right: "剩余敌人 " + (this.toWin - this.killed),
     });
+  }
+
+  // 绘制我方营地：存活时画出鹰徽，被击毁后画成灰色废墟。
+  _base(ctx) {
+    const b = this.base;
+    if (b.alive) {
+      ctx.fillStyle = "#caa030";
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.fillStyle = "#5a4010";
+      ctx.fillRect(b.x + 6, b.y + 2, 4, 4);
+      ctx.fillRect(b.x + 3, b.y + 7, 10, 3);
+      ctx.fillRect(b.x + 5, b.y + 10, 6, 5);
+    } else {
+      ctx.fillStyle = "#555";
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.fillStyle = "#333";
+      ctx.fillRect(b.x + 2, b.y + 4, 5, 5);
+      ctx.fillRect(b.x + 9, b.y + 8, 4, 4);
+    }
   }
 
   _tank(ctx, t, body, track) {
